@@ -7,7 +7,7 @@ wiki = init_wiki()
 redirect_pages = dict()
 #  сбор списка новых страниц перенаправлений на версии
 for i in ni_db.keys():
-    if "Версия" in i and "/" in i and i[-3:-2] == ".":  # для других форматов править или заменить на регэксп
+    if "Версия" in i and "/" in i and (i[-3:-2] == "." or i[-4:-3] == "."):
         version = i.split("/")[1]
         redirect_pages[version] = i
         redirect_pages["Release information/" + version] = i
