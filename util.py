@@ -48,3 +48,11 @@ def init_wiki():
         print("env BOT_LOGIN or BOT_PASSWORD not set")
     wiki.login(os.environ["BOT_LOGIN"], os.environ["BOT_PASSWORD"], True)
     return wiki
+
+
+def add_category(wiki, token, pageid, category):
+    text = "<noinclude>[[Категория:" + category + "]]</noinclude>"
+    try:
+        wiki("edit", pageid=pageid, watchlist="unwatch", minor=1, bot=1, token=token, appendtext=text)
+    except pywikiapi.utils.ApiError as ex:
+        print(ex)

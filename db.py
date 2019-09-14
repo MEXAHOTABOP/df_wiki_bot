@@ -92,7 +92,7 @@ def parse_names(name):
 
     page_id = page_info["pageid"]
 
-    if page_id in db:
+    if page_id in db:  # надо закостылять используя action=query&prop=revisions&rvprop=ids
         if page_info["revid"] == db[page_id]["revid"]:  # актуально больше ничего делать не нужно
             return
         else:
