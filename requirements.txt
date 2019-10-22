@@ -1,2 +1,3 @@
 pywikiapi
 progressbar2
+wikitextparser
