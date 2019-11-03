@@ -41,12 +41,12 @@ def generate_name_id(db, lower=True):
     return ni_db
 
 
-def init_wiki():
+def init_wiki(no_autologin=True):
     wiki = pywikiapi.Site(url="http://dfwk.ru/api.php")
     wiki.no_ssl = True
     if not os.environ["BOT_LOGIN"] or not os.environ["BOT_PASSWORD"]:
         print("env BOT_LOGIN or BOT_PASSWORD not set")
-    wiki.login(os.environ["BOT_LOGIN"], os.environ["BOT_PASSWORD"], True)
+    wiki.login(os.environ["BOT_LOGIN"], os.environ["BOT_PASSWORD"], no_autologin)
     return wiki
 
 

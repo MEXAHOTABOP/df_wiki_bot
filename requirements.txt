@@ -1,3 +1,5 @@
 pywikiapi
 progressbar2
 wikitextparser
+discord
+asyncio
