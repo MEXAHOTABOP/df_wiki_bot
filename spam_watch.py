@@ -14,7 +14,7 @@ timestamp = "20010115145600"
 
 
 # проверка известных паттернов спамботов
-re_popular_spambot = re.compile("[A-Z][a-z]{4,8}")  # самый агрессивный из этих парней
+re_popular_spambot = re.compile("[A-Z][a-z]{4,9}")  # самый агрессивный из этих парней
 
 
 def check_nickname(name):
@@ -44,7 +44,10 @@ def get_log():
         return wiki("query", list="recentchanges", rcend=timestamp,
                     rcshow="!bot", rcprop="user|title|timestamp", rctype="new|edit", rclimit=50)
     except Exception as ex:  # слишком много исключений потенциально могут быть
-        print(ex)
+        try:
+            print(ex)
+        except TypeError:
+            print("pywikiapi ex")
         return None
 
 
