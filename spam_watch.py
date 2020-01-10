@@ -12,15 +12,19 @@ client = discord.Client()
 channel_text = ""
 timestamp = "20010115145600"
 
-
 # проверка известных паттернов спамботов
-re_popular_spambot = re.compile("[A-Z][a-z]{4,9}")  # самый агрессивный из этих парней
+# WwordNNWword WwordNN Wordd 
+mainspace_spambots = re.compile("(?:[a-zA-Z]+[0-9]{1,2}[a-zA-Z]+|[a-zA-Z]+[0-9]{1,2}|[A-Z][a-z]{4,9})")
+# Woooooooord
+userspace_spambots = re.compile("[A-Z][a-z]{9,13}")
 
 
-def check_nickname(name):
-    global re_popular_spambot
+def check_nickname(name, pagename):
+    global mainspace_spambots
+    global userspace_spambots
 
-    if re_popular_spambot.fullmatch(name) is not None:
+    if mainspace_spambots.fullmatch(name) is not None or \
+            userspace_spambots.fullmatch(name) and "Участник:" in pagename:
         return True
     return False
 
@@ -83,10 +87,11 @@ async def main_loop():
                         await delete_page(i["title"], i["user"], 1)
                         continue
                     # спам боты по паттерну
-                    if check_nickname(i["user"]) and is_first_action(i["user"]):
+                    if check_nickname(i["user"], i["title"]) and is_first_action(i["user"]):
                         # print(i)
                         await delete_page(i["title"], i["user"], 2)
                         continue
+
 
 #  копипаста
 @client.event
@@ -102,5 +107,6 @@ async def on_ready():
     print("текстовый канал {}".format(channel_text.name))
 
     client.loop.create_task(main_loop())
+
 
 client.run(bot_token)
