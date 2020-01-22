@@ -20,29 +20,30 @@ def get_all_lists():
 
 
 def get_full_list(target="", continue_from="", results=None):
+    global db
     if results is None:
         results = list()
-    if target == "allpages":  # костыли
-        next_ap = "apcontinue"
-        title = "title"
-        json = wiki("query", list=target, rawcontinue=1, aplimit="max", apfrom=continue_from)
-        prefix = ""
-    elif target == "allcategories":
-        next_ap = "accontinue"
-        title = "category"
-        json = wiki("query", list=target, rawcontinue=1, aclimit="max", acfrom=continue_from)
-        prefix = "Категория:"
-    else:  # alltransclusions
-        next_ap = "atcontinue"
-        title = "title"
-        json = wiki("query", list=target, rawcontinue=1, atunique=1, atlimit="max", atfrom=continue_from)
-        prefix = ""
 
-    for name in json["query"][target]:
-        results.append(prefix + name[title])
+    if target == "allpages":  # костыли
+        next_cont = "gapcontinue"
+        json = wiki("query", generator=target, rawcontinue=1, gaplimit=1000, gapfrom=continue_from,
+                    prop="revisions", rvprop="ids")
+    elif target == "allcategories":
+        next_cont = "gaccontinue"
+        json = wiki("query", generator=target, rawcontinue=1, gaclimit=1000, gacfrom=continue_from,
+                    prop="revisions", rvprop="ids")
+    else:  # alltransclusions
+        next_cont = "gatcontinue"
+        json = wiki("query", generator=target, rawcontinue=1, gatunique=1, gatlimit=1000, gatfrom=continue_from,
+                    prop="revisions", rvprop="ids")
+
+    for page in json["query"]["pages"]:
+        if "pageid" in page and (page["pageid"] not in db or \
+                page["revisions"][0]["revid"] != db[page["pageid"]]["revid"]):
+            results.append(page["title"])
 
     if "query-continue" in json:
-        return get_full_list(target=target, continue_from=json["query-continue"][target][next_ap], results=results)
+        return get_full_list(target=target, continue_from=json["query-continue"][target][next_cont], results=results)
     else:
         return results
 
@@ -69,45 +70,21 @@ def parse_names(name):
     cur += 1
 
     try:
-        page_info = wiki("parse", page=name, prop="revid")["parse"]
-    except pywikiapi.utils.ApiError as ex:
-        try:
-            if ex.data["code"] == "missingtitle":  # игнорируем пустые категории
-                return
-            if ex.message == "Call failed":
-                print(ex.data)
-                cur -= 1
-                return parse_names(name)
-            print(name + " api исключение ")
-            print(ex)  # баги библиотеки
-        except TypeError:
-            cur -= 1
-            return parse_names(name)
-        return
-
-    except Exception as ex:
-        print(name + " неизвестное исключение ")
-        print(ex)
-        return
-
-    page_id = page_info["pageid"]
-
-    if page_id in db:  # надо закостылять используя action=query&prop=revisions&rvprop=ids
-        if page_info["revid"] == db[page_id]["revid"]:  # актуально больше ничего делать не нужно
-            return
-        else:
-            db.pop(page_id)
-    try:
         page_full_info = wiki("parse", page=name,
                               prop="wikitext|categories|langlinks|links|externallinks|revid|templates")
-    except (TypeError, pywikiapi.utils.ApiError):
+    except pywikiapi.utils.ApiError as ex:
+        if ex.data["code"] == "missingtitle":  # игнорируем пустые категории
+            return
+    except TypeError:
         cur -= 1
         return parse_names(name)
-    page_full_info = parse_redirects(page_full_info)
 
+    page_full_info = parse_redirects(page_full_info)
+    page_id = page_full_info["parse"]["pageid"]
     page_full_info[page_id] = page_full_info.pop("parse")  # меняем парсер на id
     page_full_info[page_id].pop("pageid")  # удаляем ставший не нужным id
     db.update(page_full_info)
+
     if cur % 100 == 0:  # сохранение дб в прогрессе на всякий случай
         save_db(db)
 
