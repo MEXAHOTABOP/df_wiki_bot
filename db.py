@@ -24,21 +24,24 @@ def get_full_list(target="", continue_from="", results=None):
     if results is None:
         results = list()
 
+    limit = 1000  # для бота лимит в 5000, но с ним вики возвращает пусую страницу с кодом 200 ok
+
     if target == "allpages":  # костыли
         next_cont = "gapcontinue"
-        json = wiki("query", generator=target, rawcontinue=1, gaplimit=1000, gapfrom=continue_from,
+        json = wiki("query", generator=target, rawcontinue=1, gaplimit=limit, gapfrom=continue_from,
                     prop="revisions", rvprop="ids")
     elif target == "allcategories":
         next_cont = "gaccontinue"
-        json = wiki("query", generator=target, rawcontinue=1, gaclimit=1000, gacfrom=continue_from,
+        json = wiki("query", generator=target, rawcontinue=1, gaclimit=limit, gacfrom=continue_from,
                     prop="revisions", rvprop="ids")
     else:  # alltransclusions
         next_cont = "gatcontinue"
-        json = wiki("query", generator=target, rawcontinue=1, gatunique=1, gatlimit=1000, gatfrom=continue_from,
+        json = wiki("query", generator=target, rawcontinue=1, gatunique=1, gatlimit=limit, gatfrom=continue_from,
                     prop="revisions", rvprop="ids")
 
     for page in json["query"]["pages"]:
-        if "pageid" in page and (page["pageid"] not in db or \
+        # if have_pageid and (pageid not in db or have_different_revid)
+        if "pageid" in page and (page["pageid"] not in db or
                 page["revisions"][0]["revid"] != db[page["pageid"]]["revid"]):
             results.append(page["title"])
 
