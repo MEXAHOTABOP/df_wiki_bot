@@ -43,7 +43,7 @@ class SpamWatch(discord.Client):
     def get_log(self):
         try:
             return self.wiki("query", list="recentchanges", rcend=self.timestamp,
-                             rcshow="!bot", rcprop="user|title|timestamp", rctype="new|edit", rclimit=50)
+                             rcshow="!bot", rcprop="user|title|timestamp", rctype="new|edit", rclimit=50, rawcontinue="")
         except Exception as ex:  # слишком много исключений потенциально могут быть
             try:
                 print(ex)
@@ -70,11 +70,11 @@ class SpamWatch(discord.Client):
 
     async def send_message(self, msg):
         try:
-            await self.channel_text.send(msg)
+            return await self.channel_text.send(msg)
         except Exception as e:
             print(e)
             await asyncio.sleep(2)
-            return self.send_message(msg)
+            return await self.send_message(msg)
 
     async def main_loop(self):
         await self.wait_until_ready()
@@ -112,4 +112,5 @@ def run():
         return run()
 
 
-run()
+if __name__ == '__main__':
+    run()
